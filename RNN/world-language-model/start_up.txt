@@ -1,0 +1,13 @@
+pretrain
+
+CUDA_VISIBLE_DEVICES=5 nohup python3 main_rank.py --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40 --save 'saves/large2' --reg 0 --decay 0 --od 1.0 --lr 0.5 --lr_decay 2 1>pretrain.out 2>&1 &
+
+
+train with pretrain
+
+CUDA_VISIBLE_DEVICES=0 nohup python3 main_rank.py --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40 --save 'saves/large_low_2' --checkpoint 'saves/large1_0.0_0_best.pth' --reg=2 --decay=0.01 --od 1.0 --lr 1 --lr_decay  2 --pretrained 1>Hoyer_001.out 2>&1 &
+
+finetune
+CUDA_VISIBLE_DEVICES=6 python3 finetune.py --checkpoint 'saves/large_low_1_0.001_2' --sensitivity 0.0001  --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40 --od 1.0 --lr 0.5 --lr_decay 2 --pretrained --show
+
+CUDA_VISIBLE_DEVICES=5 nohup python3 finetune.py --checkpoint 'saves/large_low_1_0.001_2' --sensitivity 0.1  --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40 --od 1.0 --lr 0.1 --lr_decay 2 --pretrained 1>HoyerFT_0001_01.out 2>&1 &
