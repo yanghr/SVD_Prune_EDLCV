@@ -1,0 +1,28 @@
+channel-wise
+
+pretrain
+nohup python3 imagenet_resnet.py --save_path ./pretrained_model50 --decay 0 --perp_weight 1.0 -e 1 --reg_type None --train --data ./data --n_svd_s1 1>pretrain50.out 2>&1 &
+
+train with pretraining
+
+nohup python3 imagenet_resnet.py --save_path ./Hoyer_Model50/0003 --load_path ./pretrained_model50/SVD_Model.pth --decay 0.003 --perp_weight 1.0 -e 1e-4 --reg_type Hoyer --train --data ./data --n_svd_s1 1>hoyer50_0003.out 2>&1 &
+
+(--reg_type : Hoyer/Hoyer-Square/L1/None)
+
+
+test and prune
+
+python3 imagenet_resnet.py --load_path ./Hoyer_Model50/0003/SVD_Model.pth --save_path ./Hoyer_Model50/0003 -e 1e-3 --test --n_svd_s1 --data ./data
+
+
+fine tune
+
+nohup python3 imagenet_resnet.py --save_path ./Hoyer_FT_Model50/0003 --load_path ./Hoyer_Model50/0003/SVD_pruning_Model.pth --decay 0.0 --perp_weight 1.0 --reg_type None --train --n_svd_s1 --prun --data ./data 1>hoyerFT50.out 2>&1 &
+
+*spatial-wise*
+for all the instruction above add:
+--dectype space
+
+
+--data : the dataset's path
+
