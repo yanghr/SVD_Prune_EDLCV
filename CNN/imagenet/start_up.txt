@@ -1,23 +1,24 @@
 channel-wise
 
 pretrain
-nohup python3 imagenet_resnet.py --save_path ./pretrained_model50 --decay 0 --perp_weight 1.0 -e 1 --reg_type None --train --data ./data --n_svd_s1 1>pretrain50.out 2>&1 &
+python imagenet_resnet.py --save_path ./pretrained_model50 -j 32 --lr 0.1 --decay 0 --perp_weight 2.0 -e 0.0 --reg_type None --train --data ./data --n_svd_s1
 
 train with pretraining
 
-nohup python3 imagenet_resnet.py --save_path ./Hoyer_Model50/0003 --load_path ./pretrained_model50/SVD_Model.pth --decay 0.003 --perp_weight 1.0 -e 1e-4 --reg_type Hoyer --train --data ./data --n_svd_s1 1>hoyer50_0003.out 2>&1 &
+python imagenet_resnet.py --save_path ./Hoyer_Model50 --load_path ./pretrained_model50/SVD_BestModel.pth --decay 0.003 --perp_weight 2.0 -e 0.0 --reg_type Hoyer --train --data ./data --n_svd_s1
 
 (--reg_type : Hoyer/Hoyer-Square/L1/None)
 
 
 test and prune
 
-python3 imagenet_resnet.py --load_path ./Hoyer_Model50/0003/SVD_Model.pth --save_path ./Hoyer_Model50/0003 -e 1e-3 --test --n_svd_s1 --data ./data
+python imagenet_resnet.py --load_path ./Hoyer_Model50/SVD_Model.pth --save_path ./Hoyer_Model50/0003 -e 1e-3 --test --n_svd_s1 --data ./data
 
 
 fine tune
 
-nohup python3 imagenet_resnet.py --save_path ./Hoyer_FT_Model50/0003 --load_path ./Hoyer_Model50/0003/SVD_pruning_Model.pth --decay 0.0 --perp_weight 1.0 --reg_type None --train --n_svd_s1 --prun --data ./data 1>hoyerFT50.out 2>&1 &
+python imagenet_resnet.py --save_path ./Hoyer_FT_Model50/0003 --load_path ./Hoyer_Model50/0003/SVD_pruning_Model.pth --decay 0.0 --perp_weight 2.0 -e 0.0 --reg_type None --train --n_svd_s1 --prun --data ./data
+
 
 *spatial-wise*
 for all the instruction above add:
@@ -25,4 +26,22 @@ for all the instruction above add:
 
 
 --data : the dataset's path
+-e : Energy removed by pruning (can be set to 0 except the test and prune step)
+--prep_weight : weight on the orthogonal loss, need to be tuned for the pretraining step, and kept same for the following steps
+3 models will be saved: 
+  SVD_model.pth : the model after final training step
+  SVD_BestModel.pth : model with best top 1 accuracy, in pretrain and finetuning step the performance of the best model will be reported in the end
+  SVD_pruning_Model.pth : model after pruning, needed for finetune
 
+
+*For faster data loading and preprocess, you may use the CAFFE dataloader provided*
+Original repo for CAFFE loader: https://github.com/jiecaoyu/pytorch_imagenet
+
+Environment requirement: 
+conda env create -f caffe-pytorch.yml
+conda activate caffe-pytorch
+
+LMDB Dataset download:
+https://drive.google.com/uc?export=download&id=0B-7I62GOSnZ8aENhOEtESVFHa2M
+
+Run imagenet_resnet_caffe.py for all the instructions above
